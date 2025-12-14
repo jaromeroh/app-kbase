@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
-import { contentSchema } from "@/lib/validators/content";
+import { contentUpdateSchema } from "@/lib/validators/content";
 import { z } from "zod";
 
 // GET - Obtener contenido por ID
@@ -67,7 +67,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const validatedData = contentSchema.partial().parse(body);
+    const validatedData = contentUpdateSchema.parse(body);
 
     const supabase = await createClient();
 

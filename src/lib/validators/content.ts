@@ -15,7 +15,8 @@ const nanToNull = z.preprocess(
   z.number().int().positive().optional().nullable()
 );
 
-export const contentSchema = z.object({
+// Schema base sin refinamientos (para poder usar .partial() en updates)
+export const contentBaseSchema = z.object({
   type: z.enum(["video", "article", "book"]),
   status: z.enum(["pending", "completed"]).default("pending"),
   title: z.string().min(1, "El título es requerido").max(500),
@@ -50,7 +51,10 @@ export const contentSchema = z.object({
       published_at: z.union([z.string(), emptyStringToNull]).optional().nullable(),
     })
     .optional(),
-}).refine(
+});
+
+// Schema completo con refinamiento (para crear contenido)
+export const contentSchema = contentBaseSchema.refine(
   (data) => {
     // URL es obligatoria para videos
     if (data.type === "video") {
@@ -63,6 +67,9 @@ export const contentSchema = z.object({
     path: ["url"],
   }
 );
+
+// Schema para actualizaciones parciales
+export const contentUpdateSchema = contentBaseSchema.partial();
 
 export type ContentFormData = z.infer<typeof contentSchema>;
 

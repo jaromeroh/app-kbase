@@ -29,8 +29,8 @@ export default async function ListsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-violet-500/10 rounded-lg">
-            <FolderOpen className="w-6 h-6 text-violet-500" />
+          <div className="p-2 bg-muted rounded-lg">
+            <FolderOpen className="w-6 h-6 text-foreground" />
           </div>
           <div>
             <h1 className="text-3xl font-bold">Mis Listas</h1>

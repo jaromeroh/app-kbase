@@ -103,6 +103,66 @@ export function getYouTubeThumbnail(
   return `https://i.ytimg.com/vi/${videoId}/${qualityMap[quality]}.jpg`;
 }
 
+/**
+ * Convierte un timestamp en formato "H:MM:SS", "MM:SS" o "M:SS" a segundos
+ */
+export function timestampToSeconds(timestamp: string): number {
+  const parts = timestamp.split(":").map(Number);
+  if (parts.length === 3) {
+    // H:MM:SS
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  } else if (parts.length === 2) {
+    // MM:SS o M:SS
+    return parts[0] * 60 + parts[1];
+  }
+  return 0;
+}
+
+/**
+ * Genera una URL de YouTube con el parámetro de tiempo
+ */
+export function getYouTubeUrlWithTime(videoUrl: string, seconds: number): string {
+  const videoId = extractYouTubeVideoId(videoUrl);
+  if (!videoId) return videoUrl;
+  return `https://youtube.com/watch?v=${videoId}&t=${seconds}`;
+}
+
+/**
+ * Encuentra todos los timestamps en un texto
+ * Soporta formatos: (0:51), (1:01-2:31), (12:20), etc.
+ */
+export function findTimestamps(text: string): Array<{
+  match: string;
+  timestamp: string;
+  seconds: number;
+  index: number;
+}> {
+  // Regex para encontrar timestamps entre paréntesis
+  const regex = /\((\d{1,2}:\d{2}(?::\d{2})?(?:-\d{1,2}:\d{2}(?::\d{2})?)?)\)/g;
+  const results: Array<{
+    match: string;
+    timestamp: string;
+    seconds: number;
+    index: number;
+  }> = [];
+
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const fullMatch = match[0];
+    const timestampStr = match[1];
+    // Para rangos como "1:01-2:31", tomamos el primer timestamp
+    const firstTimestamp = timestampStr.split("-")[0];
+    results.push({
+      match: fullMatch,
+      timestamp: timestampStr,
+      seconds: timestampToSeconds(firstTimestamp),
+      index: match.index,
+    });
+  }
+
+  return results;
+}
+
 export function detectContentType(
   url: string
 ): "video" | "article" | "book" | null {

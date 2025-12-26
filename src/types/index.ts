@@ -2,6 +2,11 @@
 export type ContentType = "video" | "article" | "book";
 export type ContentStatus = "pending" | "completed";
 
+export interface RelatedLink {
+  title: string;
+  url: string;
+}
+
 export interface Content {
   id: string;
   user_id: string;
@@ -11,6 +16,7 @@ export interface Content {
   url: string | null;
   description: string | null;
   summary: string | null;
+  related_links: RelatedLink[];
   rating: number | null;
   personal_notes: string | null;
   created_at: string;
@@ -20,7 +26,7 @@ export interface Content {
   video_metadata?: VideoMetadata | null;
   article_metadata?: ArticleMetadata | null;
   book_metadata?: BookMetadata | null;
-  content_lists?: { list_id: string }[];
+  content_lists?: { list_id: string; lists?: { id: string; name: string; color: string } }[];
   content_tags?: { tag_id: string; tags: { name: string } }[];
 }
 

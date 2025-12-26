@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Card, Input, Label, Textarea, TagInput } from "@/components/ui";
-import { Video, FileText, BookOpen, Loader2, Star, Tag } from "lucide-react";
+import { Button, Card, Input, Label, Textarea, TagInput, RelatedLinksInput } from "@/components/ui";
+import { Video, FileText, BookOpen, Loader2, Star, Tag, FolderOpen, Link as LinkIcon } from "lucide-react";
+import { ListSelector } from "@/components/lists/ListSelector";
 import { contentSchema, ContentFormData } from "@/lib/validators/content";
 import { cn, detectContentType, extractYouTubeVideoId } from "@/lib/utils";
 import { Content } from "@/types";
@@ -53,9 +54,12 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
         title: content.title,
         url: content.url || "",
         description: content.description || "",
+        summary: content.summary || "",
+        related_links: content.related_links || [],
         rating: content.rating || undefined,
         personal_notes: content.personal_notes || "",
         tags: content.content_tags?.map((ct) => ct.tags?.name).filter(Boolean) as string[] || [],
+        listIds: content.content_lists?.map((cl) => cl.list_id).filter(Boolean) as string[] || [],
         metadata: {
           // Video metadata
           channel_name: content.video_metadata?.channel_name || "",
@@ -83,9 +87,12 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
       title: "",
       url: "",
       description: "",
+      summary: "",
+      related_links: [],
       rating: undefined,
       personal_notes: "",
       tags: [],
+      listIds: [],
     };
   };
 
@@ -267,6 +274,36 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
         />
       </div>
 
+      {/* Resumen */}
+      <div className="space-y-2">
+        <Label htmlFor="summary">Resumen</Label>
+        <Textarea
+          id="summary"
+          placeholder="Pega aquí el resumen generado por IA (Gemini, ChatGPT, etc.)..."
+          rows={5}
+          {...form.register("summary")}
+        />
+        <p className="text-xs text-muted-foreground">
+          Resumen del contenido. Puedes usar herramientas de IA como Gemini en YouTube para generarlo.
+        </p>
+      </div>
+
+      {/* Links relacionados */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <LinkIcon className="w-4 h-4" />
+          Links relacionados
+        </Label>
+        <RelatedLinksInput
+          value={form.watch("related_links") || []}
+          onChange={(links) => form.setValue("related_links", links)}
+          disabled={isSubmitting}
+        />
+        <p className="text-xs text-muted-foreground">
+          Añade links a recursos complementarios, referencias o material relacionado.
+        </p>
+      </div>
+
       {/* Estado */}
       <div className="space-y-2">
         <Label>Estado</Label>
@@ -320,15 +357,18 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
         </div>
       )}
 
-      {/* Notas personales */}
+      {/* Mis comentarios */}
       <div className="space-y-2">
-        <Label htmlFor="personal_notes">Notas personales</Label>
+        <Label htmlFor="personal_notes">Mis comentarios</Label>
         <Textarea
           id="personal_notes"
-          placeholder="Tus comentarios, reflexiones o cosas que quieres recordar..."
+          placeholder="Tu opinión, reflexiones, ideas que te generó el contenido..."
           rows={4}
           {...form.register("personal_notes")}
         />
+        <p className="text-xs text-muted-foreground">
+          Tu punto de vista personal sobre el contenido.
+        </p>
       </div>
 
       {/* Tags */}
@@ -346,6 +386,22 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
         />
         <p className="text-xs text-muted-foreground">
           Escribe y presiona Enter para agregar. Máximo 10 tags.
+        </p>
+      </div>
+
+      {/* Listas */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <FolderOpen className="w-4 h-4" />
+          Listas
+        </Label>
+        <ListSelector
+          value={form.watch("listIds") || []}
+          onChange={(listIds) => form.setValue("listIds", listIds)}
+          disabled={isSubmitting}
+        />
+        <p className="text-xs text-muted-foreground">
+          Selecciona las listas donde quieres guardar este contenido.
         </p>
       </div>
 

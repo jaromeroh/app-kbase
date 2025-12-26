@@ -117,6 +117,10 @@ export async function PUT(
       updateData.rating = validatedData.rating || null;
     if (validatedData.personal_notes !== undefined)
       updateData.personal_notes = validatedData.personal_notes || null;
+    if (validatedData.summary !== undefined)
+      updateData.summary = validatedData.summary || null;
+    if (validatedData.related_links !== undefined)
+      updateData.related_links = validatedData.related_links || [];
 
     // Actualizar contenido principal
     const { data, error } = await supabase
@@ -214,6 +218,31 @@ export async function PUT(
           await supabase
             .from("book_metadata")
             .insert({ content_id: id, ...bookData });
+        }
+      }
+    }
+
+    // Actualizar listas si se especificaron
+    if (validatedData.listIds !== undefined) {
+      // Eliminar asociaciones existentes
+      await supabase
+        .from("content_lists")
+        .delete()
+        .eq("content_id", id);
+
+      // Agregar nuevas asociaciones
+      if (validatedData.listIds.length > 0) {
+        const { error: listsError } = await supabase
+          .from("content_lists")
+          .insert(
+            validatedData.listIds.map((listId) => ({
+              content_id: id,
+              list_id: listId,
+            }))
+          );
+
+        if (listsError) {
+          console.error("Error associating lists:", listsError);
         }
       }
     }

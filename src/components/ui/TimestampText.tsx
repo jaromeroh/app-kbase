@@ -7,16 +7,19 @@ interface TimestampTextProps {
   text: string;
   videoUrl?: string | null;
   className?: string;
+  /** Si se proporciona, los timestamps llamarán a esta función en lugar de abrir un enlace */
+  onTimestampClick?: (seconds: number) => void;
 }
 
 /**
  * Componente que renderiza texto con timestamps clickeables
  * Los timestamps en formato (0:51), (1:01-2:31), etc. se convierten en enlaces
- * que abren el video en ese momento específico
+ * que abren el video en ese momento específico o llaman a onTimestampClick
  */
-export function TimestampText({ text, videoUrl, className }: TimestampTextProps) {
+export function TimestampText({ text, videoUrl, className, onTimestampClick }: TimestampTextProps) {
   const parts = useMemo(() => {
-    if (!videoUrl) {
+    // Si no hay videoUrl ni onTimestampClick, no procesar timestamps
+    if (!videoUrl && !onTimestampClick) {
       return [{ type: "text" as const, content: text }];
     }
 
@@ -27,7 +30,7 @@ export function TimestampText({ text, videoUrl, className }: TimestampTextProps)
 
     const result: Array<
       | { type: "text"; content: string }
-      | { type: "timestamp"; content: string; url: string }
+      | { type: "timestamp"; content: string; url: string; seconds: number }
     > = [];
 
     let lastIndex = 0;
@@ -45,7 +48,8 @@ export function TimestampText({ text, videoUrl, className }: TimestampTextProps)
       result.push({
         type: "timestamp",
         content: ts.match,
-        url: getYouTubeUrlWithTime(videoUrl, ts.seconds),
+        url: videoUrl ? getYouTubeUrlWithTime(videoUrl, ts.seconds) : "#",
+        seconds: ts.seconds,
       });
 
       lastIndex = ts.index + ts.match.length;
@@ -60,7 +64,7 @@ export function TimestampText({ text, videoUrl, className }: TimestampTextProps)
     }
 
     return result;
-  }, [text, videoUrl]);
+  }, [text, videoUrl, onTimestampClick]);
 
   return (
     <span className={className}>
@@ -68,6 +72,21 @@ export function TimestampText({ text, videoUrl, className }: TimestampTextProps)
         if (part.type === "text") {
           return <span key={index}>{part.content}</span>;
         }
+
+        // Si hay onTimestampClick, usar botón en lugar de enlace
+        if (onTimestampClick) {
+          return (
+            <button
+              key={index}
+              onClick={() => onTimestampClick(part.seconds)}
+              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              title={`Ir a ${part.content.slice(1, -1)} en el video`}
+            >
+              {part.content}
+            </button>
+          );
+        }
+
         return (
           <a
             key={index}

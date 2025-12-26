@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,7 +12,10 @@ import {
   Badge,
   Button,
   TimestampText,
+  YouTubePlayer,
+  YouTubePlayerRef,
 } from "@/components/ui";
+import { extractYouTubeVideoId } from "@/lib/utils";
 import {
   Video,
   FileText,
@@ -56,8 +59,35 @@ export function ContentDetail({ content }: ContentDetailProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
+  const playerRef = useRef<YouTubePlayerRef>(null);
 
   const Icon = typeIcons[content.type];
+
+  // Obtener videoId para el reproductor embebido
+  const videoId = content.type === "video" && content.url
+    ? extractYouTubeVideoId(content.url)
+    : null;
+
+  // Callback para cuando se hace clic en un timestamp
+  const handleTimestampClick = useCallback((seconds: number) => {
+    if (playerRef.current) {
+      playerRef.current.seekTo(seconds);
+      // Hacer scroll al reproductor
+      document.getElementById("video-player-section")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+    // Si el player no está visible, mostrarlo primero
+    if (!showPlayer) {
+      setShowPlayer(true);
+      // Esperar a que el player se monte y luego hacer seek
+      setTimeout(() => {
+        playerRef.current?.seekTo(seconds);
+      }, 1000);
+    }
+  }, [showPlayer]);
 
   const handleDelete = async () => {
     if (!confirm("¿Estás seguro de que quieres eliminar este contenido?")) {
@@ -156,27 +186,39 @@ export function ContentDetail({ content }: ContentDetailProps) {
       {/* Hero Section */}
       <Card className="overflow-hidden">
         <div className="relative">
-          {/* Thumbnail para videos - tamaño optimizado para calidad */}
-          {thumbnail && content.type === "video" ? (
-            <div className="flex justify-center bg-muted/30 p-4">
-              <div className="relative w-full max-w-xl aspect-video rounded-lg overflow-hidden shadow-lg">
-                <Image
-                  src={thumbnail}
-                  alt={content.title}
-                  fill
-                  className="object-cover"
-                />
-                {content.url && (
-                  <a
-                    href={content.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-                      <Play className="w-7 h-7 text-black ml-1" />
+          {/* Video Player o Thumbnail para videos */}
+          {content.type === "video" && videoId ? (
+            <div id="video-player-section" className="flex justify-center bg-muted/30 p-4">
+              <div className="w-full max-w-2xl">
+                {showPlayer ? (
+                  <YouTubePlayer
+                    ref={playerRef}
+                    videoId={videoId}
+                    className="aspect-video w-full"
+                    autoplay
+                  />
+                ) : (
+                  <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
+                    {thumbnail && (
+                      <Image
+                        src={thumbnail}
+                        alt={content.title}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
+                    <button
+                      onClick={() => setShowPlayer(true)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                      </div>
+                    </button>
+                    <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                      Ver en esta página
                     </div>
-                  </a>
+                  </div>
                 )}
               </div>
             </div>
@@ -336,6 +378,7 @@ export function ContentDetail({ content }: ContentDetailProps) {
                 <TimestampText
                   text={content.summary}
                   videoUrl={content.type === "video" ? content.url : null}
+                  onTimestampClick={videoId ? handleTimestampClick : undefined}
                 />
               </p>
             </CardContent>

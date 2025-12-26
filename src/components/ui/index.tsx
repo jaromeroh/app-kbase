@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import ReactDOM from "react-dom";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Moon, Sun, Loader2, Check, ChevronDown, X } from "lucide-react";
@@ -619,3 +620,178 @@ export { RelatedLinksInput } from "./RelatedLinksInput";
 // Re-export TimestampText
 // ============================================
 export { TimestampText } from "./TimestampText";
+
+// ============================================
+// Re-export YouTubePlayer
+// ============================================
+export { YouTubePlayer } from "./YouTubePlayer";
+export type { YouTubePlayerRef } from "./YouTubePlayer";
+
+// ============================================
+// Popover Component
+// ============================================
+
+interface PopoverContextValue {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  triggerRef: React.RefObject<HTMLElement | null>;
+}
+
+const PopoverContext = React.createContext<PopoverContextValue | null>(null);
+
+function usePopoverContext() {
+  const context = React.useContext(PopoverContext);
+  if (!context) {
+    throw new Error("Popover components must be used within a Popover");
+  }
+  return context;
+}
+
+interface PopoverProps {
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function Popover({ children, open: controlledOpen, onOpenChange }: PopoverProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLElement>(null);
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = React.useCallback((value: boolean) => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(value);
+    }
+    onOpenChange?.(value);
+  }, [controlledOpen, onOpenChange]);
+
+  return (
+    <PopoverContext.Provider value={{ open, setOpen, triggerRef }}>
+      {children}
+    </PopoverContext.Provider>
+  );
+}
+
+interface PopoverTriggerProps {
+  children: React.ReactElement;
+  asChild?: boolean;
+}
+
+export function PopoverTrigger({ children, asChild }: PopoverTriggerProps) {
+  const { open, setOpen, triggerRef } = usePopoverContext();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(!open);
+  };
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void; ref?: React.Ref<HTMLElement> }>, {
+      onClick: handleClick,
+      ref: triggerRef as React.Ref<HTMLElement>,
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      ref={triggerRef as React.RefObject<HTMLButtonElement>}
+    >
+      {children}
+    </button>
+  );
+}
+
+interface PopoverContentProps {
+  children: React.ReactNode;
+  className?: string;
+  align?: "start" | "center" | "end";
+  sideOffset?: number;
+}
+
+export function PopoverContent({
+  children,
+  className,
+  align = "start",
+  sideOffset = 4,
+}: PopoverContentProps) {
+  const { open, setOpen, triggerRef } = usePopoverContext();
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState({ top: 0, left: 0 });
+
+  // Calculate position
+  React.useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const contentWidth = contentRef.current?.offsetWidth || 300;
+
+      let left = rect.left;
+      if (align === "center") {
+        left = rect.left + rect.width / 2 - contentWidth / 2;
+      } else if (align === "end") {
+        left = rect.right - contentWidth;
+      }
+
+      // Keep within viewport
+      const maxLeft = window.innerWidth - contentWidth - 8;
+      left = Math.max(8, Math.min(left, maxLeft));
+
+      setPosition({
+        top: rect.bottom + sideOffset + window.scrollY,
+        left: left + window.scrollX,
+      });
+    }
+  }, [open, align, sideOffset, triggerRef]);
+
+  // Close on click outside
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        contentRef.current &&
+        !contentRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, setOpen, triggerRef]);
+
+  if (!open) return null;
+
+  return ReactDOM.createPortal(
+    <div
+      ref={contentRef}
+      className={cn(
+        "fixed z-50 min-w-[200px] rounded-md border bg-white dark:bg-zinc-900 p-2 shadow-lg",
+        "animate-in fade-in-0 zoom-in-95",
+        className
+      )}
+      style={{
+        top: position.top,
+        left: position.left,
+      }}
+    >
+      {children}
+    </div>,
+    document.body
+  );
+}

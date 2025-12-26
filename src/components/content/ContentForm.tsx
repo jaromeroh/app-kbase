@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Card, Input, Label, Textarea, TagInput, RelatedLinksInput } from "@/components/ui";
 import { Video, FileText, BookOpen, Loader2, Star, Tag, FolderOpen, Link as LinkIcon } from "lucide-react";
 import { ListSelector } from "@/components/lists/ListSelector";
+import { BookSearch } from "@/components/content/BookSearch";
+import type { BookSearchResult } from "@/app/api/books/route";
 import { contentSchema, ContentFormData } from "@/lib/validators/content";
 import { cn, detectContentType, extractYouTubeVideoId } from "@/lib/utils";
 import { Content } from "@/types";
@@ -33,6 +35,10 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedBook, setSelectedBook] = useState<{
+    title: string;
+    cover_image_url: string | null;
+  } | null>(null);
 
   // Cargar tags disponibles al montar
   useEffect(() => {
@@ -45,6 +51,61 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
       })
       .catch((err) => console.error("Error loading tags:", err));
   }, []);
+
+  // Inicializar selectedBook si estamos editando un libro
+  useEffect(() => {
+    if (content?.type === "book" && content.title) {
+      setSelectedBook({
+        title: content.title,
+        cover_image_url: content.book_metadata?.cover_image_url || null,
+      });
+    }
+  }, [content]);
+
+  // Handler para cuando se selecciona un libro desde BookSearch
+  const handleBookSelect = (book: BookSearchResult) => {
+    setSelectedBook({
+      title: book.title,
+      cover_image_url: book.cover_image_url,
+    });
+
+    // Auto-fill form fields
+    form.setValue("title", book.title);
+    if (book.description) {
+      form.setValue("description", book.description);
+    }
+    if (book.author) {
+      form.setValue("metadata.author", book.author);
+    }
+    if (book.publisher) {
+      form.setValue("metadata.publisher", book.publisher);
+    }
+    if (book.isbn) {
+      form.setValue("metadata.isbn", book.isbn);
+    }
+    if (book.page_count) {
+      form.setValue("metadata.page_count", book.page_count);
+    }
+    if (book.cover_image_url) {
+      form.setValue("metadata.cover_image_url", book.cover_image_url);
+    }
+    if (book.published_year) {
+      form.setValue("metadata.published_year", book.published_year);
+    }
+  };
+
+  // Handler para limpiar la selección de libro
+  const handleBookClear = () => {
+    setSelectedBook(null);
+    form.setValue("title", "");
+    form.setValue("description", "");
+    form.setValue("metadata.author", "");
+    form.setValue("metadata.publisher", "");
+    form.setValue("metadata.isbn", "");
+    form.setValue("metadata.page_count", undefined);
+    form.setValue("metadata.cover_image_url", "");
+    form.setValue("metadata.published_year", undefined);
+  };
 
   const getDefaultValues = (): ContentFormData => {
     if (content && mode === "edit") {
@@ -151,6 +212,7 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
         }
       }
     }
+
   };
 
   const onSubmit = async (data: ContentFormData) => {
@@ -233,7 +295,13 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
             <button
               key={option.value}
               type="button"
-              onClick={() => form.setValue("type", option.value)}
+              onClick={() => {
+                form.setValue("type", option.value);
+                // Limpiar selección de libro si cambiamos de tipo
+                if (option.value !== "book") {
+                  setSelectedBook(null);
+                }
+              }}
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all",
                 selectedType === option.value
@@ -247,6 +315,22 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
           ))}
         </div>
       </div>
+
+      {/* Búsqueda de libro (solo para tipo libro) */}
+      {selectedType === "book" && (
+        <div className="space-y-2">
+          <Label>Buscar libro</Label>
+          <BookSearch
+            onSelect={handleBookSelect}
+            onClear={handleBookClear}
+            selectedBook={selectedBook}
+            disabled={isSubmitting}
+          />
+          <p className="text-xs text-muted-foreground">
+            Busca el libro por título o autor para autocompletar los datos.
+          </p>
+        </div>
+      )}
 
       {/* Título */}
       <div className="space-y-2">

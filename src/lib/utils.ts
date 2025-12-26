@@ -175,10 +175,15 @@ export function detectContentType(
   ];
 
   const bookPatterns = [
-    /goodreads\.com/,
-    /amazon\.\w+\/.*\/dp\//,
+    /goodreads\.com\/book/,
+    /amazon\.\w+\/.*\/dp\//,           // amazon.es/nombre/dp/ASIN
+    /amazon\.\w+\/.*\/gp\/product\//,  // amazon.es/gp/product/ASIN
+    /amazon\.\w+\/dp\//,               // amazon.es/dp/ASIN (directo)
+    /amazon\.\w+\/gp\/product\//,      // amazon.es/gp/product/ASIN (directo)
+    /a\.co\/d\//,                      // a.co/d/XXXX (URL corta de Amazon)
+    /amzn\.\w+\//,                     // amzn.to, amzn.eu, etc.
     /books\.google\./,
-    /openlibrary\.org/,
+    /openlibrary\.org\/books/,
   ];
 
   for (const pattern of videoPatterns) {

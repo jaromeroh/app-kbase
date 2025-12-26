@@ -27,7 +27,7 @@ export const contentBaseSchema = z.object({
   status: z.enum(["pending", "completed"]).default("pending"),
   title: z.string().min(1, "El título es requerido").max(500),
   url: z.union([z.string().url("URL inválida"), emptyStringToNull]).optional().nullable(),
-  description: z.union([z.string().max(2000), emptyStringToNull]).optional().nullable(),
+  description: z.union([z.string().max(5000), emptyStringToNull]).optional().nullable(),
   summary: z.union([z.string().max(5000), emptyStringToNull]).optional().nullable(),
   related_links: z.array(relatedLinkSchema).max(20).optional().default([]),
   rating: z.number().int().min(1).max(5).optional().nullable(),

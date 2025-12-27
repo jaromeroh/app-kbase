@@ -708,6 +708,7 @@ interface PopoverContentProps {
   children: React.ReactNode;
   className?: string;
   align?: "start" | "center" | "end";
+  side?: "top" | "bottom";
   sideOffset?: number;
 }
 
@@ -715,6 +716,7 @@ export function PopoverContent({
   children,
   className,
   align = "start",
+  side = "bottom",
   sideOffset = 4,
 }: PopoverContentProps) {
   const { open, setOpen, triggerRef } = usePopoverContext();
@@ -726,6 +728,7 @@ export function PopoverContent({
     if (open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       const contentWidth = contentRef.current?.offsetWidth || 300;
+      const contentHeight = contentRef.current?.offsetHeight || 200;
 
       let left = rect.left;
       if (align === "center") {
@@ -734,16 +737,24 @@ export function PopoverContent({
         left = rect.right - contentWidth;
       }
 
-      // Keep within viewport
+      // Keep within viewport horizontally
       const maxLeft = window.innerWidth - contentWidth - 8;
       left = Math.max(8, Math.min(left, maxLeft));
 
+      // Calculate top based on side
+      let top: number;
+      if (side === "top") {
+        top = rect.top - contentHeight - sideOffset + window.scrollY;
+      } else {
+        top = rect.bottom + sideOffset + window.scrollY;
+      }
+
       setPosition({
-        top: rect.bottom + sideOffset + window.scrollY,
+        top,
         left: left + window.scrollX,
       });
     }
-  }, [open, align, sideOffset, triggerRef]);
+  }, [open, align, side, sideOffset, triggerRef]);
 
   // Close on click outside
   React.useEffect(() => {

@@ -11,6 +11,7 @@ import {
   PopoverContent,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { CreateListModal } from "./CreateListModal";
 
 interface List {
   id: string;
@@ -31,6 +32,14 @@ export function ListSelector({ value = [], onChange, disabled = false }: ListSel
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Callback cuando se crea una nueva lista
+  const handleListCreated = (newList: List) => {
+    setLists((prev) => [...prev, newList]);
+    // Auto-seleccionar la nueva lista
+    onChange([...value, newList.id]);
+  };
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -95,12 +104,26 @@ export function ListSelector({ value = [], onChange, disabled = false }: ListSel
 
   if (lists.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground py-2">
-        No tienes listas creadas.{" "}
-        <a href="/lists/new" className="text-primary hover:underline">
-          Crear una lista
-        </a>
-      </p>
+      <div className="py-2">
+        <p className="text-sm text-muted-foreground mb-2">
+          No tienes listas creadas.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowCreateModal(true)}
+          className="gap-1"
+        >
+          <Plus className="w-3 h-3" />
+          Crear lista
+        </Button>
+        <CreateListModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleListCreated}
+        />
+      </div>
     );
   }
 
@@ -155,7 +178,7 @@ export function ListSelector({ value = [], onChange, disabled = false }: ListSel
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-72 p-0" align="start">
+          <PopoverContent className="w-72 p-0" align="start" side="top" sideOffset={8}>
             {/* Búsqueda */}
             <div className="p-2 border-b">
               <div className="relative">
@@ -223,17 +246,29 @@ export function ListSelector({ value = [], onChange, disabled = false }: ListSel
               )}
             </div>
 
-            {/* Footer con link a crear lista */}
+            {/* Footer con botón para crear lista */}
             <div className="p-2 border-t">
-              <a
-                href="/lists"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setShowCreateModal(true);
+                }}
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
               >
-                Gestionar listas →
-              </a>
+                <Plus className="w-3 h-3" />
+                Crear nueva lista
+              </button>
             </div>
           </PopoverContent>
         </Popover>
+
+        {/* Modal para crear lista */}
+        <CreateListModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleListCreated}
+        />
       </div>
 
       {/* Texto de ayuda cuando no hay selección */}

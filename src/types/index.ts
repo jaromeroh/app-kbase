@@ -95,6 +95,32 @@ export interface User {
   role: "admin" | "viewer";
 }
 
+// User Preferences types
+export type DefaultView = "list" | "grid";
+export type DefaultSort = "created_at" | "updated_at" | "title" | "rating";
+export type SortOrder = "asc" | "desc";
+export type ItemsPerPage = 10 | 20 | 50;
+
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  default_view: DefaultView;
+  default_sort: DefaultSort;
+  default_sort_order: SortOrder;
+  items_per_page: ItemsPerPage;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserPreferencesInput {
+  display_name?: string | null;
+  default_view?: DefaultView;
+  default_sort?: DefaultSort;
+  default_sort_order?: SortOrder;
+  items_per_page?: ItemsPerPage;
+}
+
 // Stats types
 export interface UserStats {
   total_content: number;

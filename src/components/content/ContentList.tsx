@@ -30,12 +30,19 @@ import {
   X,
   Tag,
 } from "lucide-react";
-import { Content } from "@/types";
+import { Content, DefaultView, DefaultSort, SortOrder as PreferencesSortOrder } from "@/types";
 import { cn, formatRelativeTime, truncate } from "@/lib/utils";
 import Image from "next/image";
 
+interface UserPreferencesProps {
+  defaultView?: DefaultView;
+  defaultSort?: DefaultSort;
+  defaultSortOrder?: PreferencesSortOrder;
+}
+
 interface ContentListProps {
   content: Content[];
+  preferences?: UserPreferencesProps;
 }
 
 const typeIcons = {
@@ -56,16 +63,17 @@ const typeLabels = {
   book: "Libro",
 };
 
-type SortField = "created_at" | "rating" | "title";
+type SortField = "created_at" | "updated_at" | "rating" | "title";
 type SortOrder = "asc" | "desc";
 
 const sortLabels: Record<SortField, string> = {
-  created_at: "Fecha",
-  rating: "Rating",
+  created_at: "Fecha creación",
+  updated_at: "Fecha actualización",
+  rating: "Calificación",
   title: "Título",
 };
 
-export function ContentList({ content }: ContentListProps) {
+export function ContentList({ content, preferences }: ContentListProps) {
   const searchParams = useSearchParams();
   const tagFilter = searchParams.get("tag");
 
@@ -74,12 +82,18 @@ export function ContentList({ content }: ContentListProps) {
     "all" | "video" | "article" | "book"
   >("all");
 
-  // View mode
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  // View mode - usa preferencia del usuario o "grid" por defecto
+  const [viewMode, setViewMode] = useState<"grid" | "list">(
+    preferences?.defaultView || "grid"
+  );
 
-  // Sorting
-  const [sortBy, setSortBy] = useState<SortField>("created_at");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  // Sorting - usa preferencias del usuario o valores por defecto
+  const [sortBy, setSortBy] = useState<SortField>(
+    preferences?.defaultSort || "created_at"
+  );
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    preferences?.defaultSortOrder || "desc"
+  );
 
   // Visible columns (for list view)
   const [visibleColumns, setVisibleColumns] = useState({
@@ -114,6 +128,10 @@ export function ContentList({ content }: ContentListProps) {
           break;
         case "title":
           comparison = a.title.localeCompare(b.title);
+          break;
+        case "updated_at":
+          comparison =
+            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
           break;
         case "created_at":
         default:
@@ -252,7 +270,7 @@ export function ContentList({ content }: ContentListProps) {
         >
           <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(["created_at", "rating", "title"] as SortField[]).map((field) => (
+          {(["created_at", "updated_at", "rating", "title"] as SortField[]).map((field) => (
             <DropdownMenuItem
               key={field}
               onClick={() => handleSort(field)}

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ContentList } from "@/components/content/ContentList";
+import { UserPreferences } from "@/types";
 
 interface ContentPageProps {
   searchParams: Promise<{
@@ -14,12 +15,19 @@ interface ContentPageProps {
 export default async function ContentPage({ searchParams }: ContentPageProps) {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/login");
   }
 
   const params = await searchParams;
   const supabase = await createClient();
+
+  // Obtener preferencias del usuario
+  const { data: preferences } = await supabase
+    .from("user_preferences")
+    .select("default_view, default_sort, default_sort_order")
+    .eq("user_id", session.user.id)
+    .single();
 
   let query = supabase
     .from("content")
@@ -28,7 +36,8 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
       *,
       video_metadata(*),
       article_metadata(*),
-      book_metadata(*)
+      book_metadata(*),
+      content_tags(tag_id, tags(id, name))
     `
     )
     .eq("user_id", session.user.id)
@@ -48,6 +57,12 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
     console.error("Error fetching content:", error);
   }
 
+  const userPreferences = preferences ? {
+    defaultView: preferences.default_view as UserPreferences["default_view"],
+    defaultSort: preferences.default_sort as UserPreferences["default_sort"],
+    defaultSortOrder: preferences.default_sort_order as UserPreferences["default_sort_order"],
+  } : undefined;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -65,7 +80,7 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
         </a>
       </div>
 
-      <ContentList content={content || []} />
+      <ContentList content={content || []} preferences={userPreferences} />
     </div>
   );
 }

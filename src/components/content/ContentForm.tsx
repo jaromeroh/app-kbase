@@ -27,9 +27,10 @@ const statusOptions = [
 interface ContentFormProps {
   content?: Content;
   mode?: "create" | "edit";
+  initialType?: "video" | "article" | "book";
 }
 
-export function ContentForm({ content, mode = "create" }: ContentFormProps) {
+export function ContentForm({ content, mode = "create", initialType }: ContentFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
@@ -143,7 +144,7 @@ export function ContentForm({ content, mode = "create" }: ContentFormProps) {
       };
     }
     return {
-      type: "video",
+      type: initialType || "video",
       status: "pending",
       title: "",
       url: "",

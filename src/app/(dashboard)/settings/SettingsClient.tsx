@@ -299,7 +299,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   </div>
                 )}
                 <div>
-                  <p className="font-medium">{user.name || "Usuario"}</p>
+                  <p className="font-medium">{displayName || user.name || "Usuario"}</p>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
               </div>

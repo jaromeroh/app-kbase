@@ -356,7 +356,7 @@ export function DropdownMenu({ trigger, children, align = "left" }: DropdownMenu
       {isOpen && (
         <div
           className={cn(
-            "absolute z-50 mt-1 min-w-[180px] rounded-md border border-border bg-popover p-1 shadow-md",
+            "absolute z-50 mt-1 min-w-[180px] rounded-md border border-border bg-white dark:bg-zinc-900 p-1 shadow-lg",
             align === "right" ? "right-0" : "left-0"
           )}
         >

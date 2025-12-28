@@ -9,6 +9,7 @@ import {
   BookOpen,
   FolderOpen,
   Settings,
+  ListTodo,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui";
 
@@ -17,17 +18,22 @@ const navItems = [
   { href: "/videos", icon: Video, label: "Videos" },
   { href: "/articles", icon: FileText, label: "Artículos" },
   { href: "/books", icon: BookOpen, label: "Libros" },
-  { href: "/lists", icon: FolderOpen, label: "Mis Listas" },
+  { href: "/lists", icon: ListTodo, label: "Mis Listas" },
 ];
 
-export function Sidebar() {
+interface SidebarContentProps {
+  onNavigate?: () => void;
+}
+
+// Contenido reutilizable del sidebar (para desktop y mobile drawer)
+export function SidebarContent({ onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 h-screen bg-surface border-r border-border flex flex-col">
+    <>
       {/* Logo */}
       <div className="p-4 border-b border-border">
-        <Link href="/content" className="block">
+        <Link href="/content" className="block" onClick={onNavigate}>
           <span className="font-semibold text-xl">Knowledge Base</span>
         </Link>
       </div>
@@ -43,6 +49,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
                 isActive
@@ -65,12 +72,22 @@ export function Sidebar() {
         </div>
         <Link
           href="/settings"
+          onClick={onNavigate}
           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Settings className="w-4 h-4" />
           Configuración
         </Link>
       </div>
+    </>
+  );
+}
+
+// Sidebar desktop (oculto en móvil)
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex w-64 h-screen bg-surface border-r border-border flex-col">
+      <SidebarContent />
     </aside>
   );
 }

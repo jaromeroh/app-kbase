@@ -64,7 +64,7 @@ export default async function VideosPage() {
         </Link>
       </div>
 
-      <ContentList content={content || []} preferences={userPreferences} />
+      <ContentList content={content || []} preferences={userPreferences} showTypeFilter={false} />
     </div>
   );
 }

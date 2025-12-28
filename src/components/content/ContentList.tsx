@@ -43,6 +43,7 @@ interface UserPreferencesProps {
 interface ContentListProps {
   content: Content[];
   preferences?: UserPreferencesProps;
+  showTypeFilter?: boolean;
 }
 
 const typeIcons = {
@@ -73,7 +74,7 @@ const sortLabels: Record<SortField, string> = {
   title: "Título",
 };
 
-export function ContentList({ content, preferences }: ContentListProps) {
+export function ContentList({ content, preferences, showTypeFilter = true }: ContentListProps) {
   const searchParams = useSearchParams();
   const tagFilter = searchParams.get("tag");
 
@@ -217,25 +218,27 @@ export function ContentList({ content, preferences }: ContentListProps) {
           ))}
         </div>
 
-        {/* Type Filter */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
-          {(["all", "video", "article", "book"] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setTypeFilter(type)}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                typeFilter === type
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {type === "all" && "Todo tipo"}
-              {type === "video" && "Videos"}
-              {type === "article" && "Artículos"}
-              {type === "book" && "Libros"}
-            </button>
-          ))}
-        </div>
+        {/* Type Filter - solo visible en "Todo el Contenido" */}
+        {showTypeFilter && (
+          <div className="flex gap-1 p-1 bg-muted rounded-lg">
+            {(["all", "video", "article", "book"] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  typeFilter === type
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {type === "all" && "Todo tipo"}
+                {type === "video" && "Videos"}
+                {type === "article" && "Artículos"}
+                {type === "book" && "Libros"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Active Tag Filter */}
         {tagFilter && (
@@ -449,8 +452,8 @@ export function ContentList({ content, preferences }: ContentListProps) {
       {/* Content - List View */}
       {viewMode === "list" && (
         <div className="border border-border rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center gap-4 px-4 py-2 bg-muted/50 border-b border-border text-sm font-medium text-muted-foreground">
+          {/* Header - oculto en móvil para más espacio */}
+          <div className="hidden sm:flex items-center gap-4 px-4 py-2 bg-muted/50 border-b border-border text-sm font-medium text-muted-foreground">
             <div className="w-16 flex-shrink-0" />
             <div className="flex-1 min-w-0">Título</div>
             {visibleColumns.type && <div className="w-20 text-center">Tipo</div>}
@@ -470,7 +473,7 @@ export function ContentList({ content, preferences }: ContentListProps) {
               <Link
                 key={item.id}
                 href={`/content/${item.id}`}
-                className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors"
               >
                 {/* Mini Thumbnail */}
                 <div className="w-16 h-10 flex-shrink-0 bg-muted rounded-sm overflow-hidden relative">
@@ -488,28 +491,37 @@ export function ContentList({ content, preferences }: ContentListProps) {
                   )}
                 </div>
 
-                {/* Title */}
+                {/* Title + Info móvil */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{item.title}</p>
-                  {subtitle && (
-                    <p className="text-xs text-muted-foreground truncate md:hidden">
-                      {subtitle}
-                    </p>
-                  )}
+                  <p className="font-medium line-clamp-2 sm:line-clamp-1">{item.title}</p>
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    {subtitle && (
+                      <p className="text-xs text-muted-foreground truncate md:hidden">
+                        {subtitle}
+                      </p>
+                    )}
+                    {/* Rating en móvil */}
+                    {item.rating && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground sm:hidden flex-shrink-0">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        {item.rating}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Type */}
+                {/* Type - oculto en móvil */}
                 {visibleColumns.type && (
-                  <div className="w-20 flex justify-center">
+                  <div className="w-20 hidden sm:flex justify-center">
                     <Badge className={cn(typeColors[item.type], "text-xs")}>
                       {typeLabels[item.type]}
                     </Badge>
                   </div>
                 )}
 
-                {/* Rating */}
+                {/* Rating - oculto en móvil */}
                 {visibleColumns.rating && (
-                  <div className="w-16 flex justify-center">
+                  <div className="w-16 hidden sm:flex justify-center">
                     {item.rating ? (
                       <span className="flex items-center gap-1 text-sm">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -556,9 +568,9 @@ export function ContentList({ content, preferences }: ContentListProps) {
                   </div>
                 )}
 
-                {/* Status */}
+                {/* Status - oculto en móvil */}
                 {visibleColumns.status && (
-                  <div className="w-20 flex justify-center">
+                  <div className="w-20 hidden sm:flex justify-center">
                     {item.status === "completed" ? (
                       <div className="p-1 bg-primary rounded-full">
                         <CheckCircle className="w-3 h-3 text-primary-foreground" />

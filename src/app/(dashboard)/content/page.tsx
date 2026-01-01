@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ContentList } from "@/components/content/ContentList";
+import { FloatingActionButton } from "@/components/ui";
 import { UserPreferences } from "@/types";
 
 interface ContentPageProps {
@@ -74,13 +75,15 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
         </div>
         <a
           href="/content/new"
-          className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          className="hidden md:inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
           Agregar Nuevo
         </a>
       </div>
 
       <ContentList content={content || []} preferences={userPreferences} />
+
+      <FloatingActionButton href="/content/new" label="Agregar contenido" />
     </div>
   );
 }

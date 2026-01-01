@@ -15,6 +15,7 @@ function extractYouTubeVideoId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
     /youtube\.com\/shorts\/([^&\n?#]+)/,
+    /youtube\.com\/live\/([^&\n?#]+)/,
   ];
 
   for (const pattern of patterns) {
@@ -95,9 +96,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Convertir a URL canónica para noembed (no soporta /live/, /shorts/, etc.)
+    const canonicalUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
     // Obtener metadatos en paralelo
     const [noembedResponse, description] = await Promise.all([
-      fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`),
+      fetch(`https://noembed.com/embed?url=${encodeURIComponent(canonicalUrl)}`),
       fetchYouTubeDescription(videoId),
     ]);
 

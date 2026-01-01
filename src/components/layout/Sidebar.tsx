@@ -65,19 +65,18 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Tema</span>
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
+          <Link
+            href="/settings"
+            onClick={onNavigate}
+            title="Configuración"
+            className="h-9 w-9 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
         </div>
-        <Link
-          href="/settings"
-          onClick={onNavigate}
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          <Settings className="w-4 h-4" />
-          Configuración
-        </Link>
       </div>
     </>
   );

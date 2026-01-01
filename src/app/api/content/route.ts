@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (params.search) {
-      query = query.ilike("title", `%${params.search}%`);
+      // Buscar en título, descripción y notas personales
+      query = query.or(
+        `title.ilike.%${params.search}%,description.ilike.%${params.search}%,personal_notes.ilike.%${params.search}%`
+      );
     }
 
     // Ordenamiento y paginación

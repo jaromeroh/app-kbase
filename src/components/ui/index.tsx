@@ -314,6 +314,7 @@ export function ThemeToggle() {
         "hover:bg-muted transition-colors"
       )}
       aria-label="Toggle theme"
+      title={resolvedTheme === "dark" ? "Tema claro" : "Tema oscuro"}
     >
       {resolvedTheme === "dark" ? (
         <Sun className="h-4 w-4" />
@@ -615,6 +616,11 @@ export function TagInput({
 // Re-export RelatedLinksInput
 // ============================================
 export { RelatedLinksInput } from "./RelatedLinksInput";
+
+// ============================================
+// Re-export FloatingActionButton
+// ============================================
+export { FloatingActionButton } from "./FloatingActionButton";
 
 // ============================================
 // Re-export TimestampText

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ContentList } from "@/components/content/ContentList";
+import { FloatingActionButton } from "@/components/ui";
 import { BookOpen, Plus } from "lucide-react";
 import { UserPreferences } from "@/types";
 import Link from "next/link";
@@ -57,7 +58,7 @@ export default async function BooksPage() {
         </div>
         <Link
           href="/content/new?type=book"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Agregar Libro
@@ -65,6 +66,8 @@ export default async function BooksPage() {
       </div>
 
       <ContentList content={content || []} preferences={userPreferences} showTypeFilter={false} />
+
+      <FloatingActionButton href="/content/new?type=book" label="Agregar libro" />
     </div>
   );
 }

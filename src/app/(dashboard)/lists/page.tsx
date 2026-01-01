@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, Button } from "@/components/ui";
+import { Card, CardContent, Button, FloatingActionButton } from "@/components/ui";
 import { FolderOpen, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -39,7 +39,7 @@ export default async function ListsPage() {
             </p>
           </div>
         </div>
-        <Link href="/lists/new">
+        <Link href="/lists/new" className="hidden md:block">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
             Nueva Lista
@@ -97,6 +97,8 @@ export default async function ListsPage() {
           </CardContent>
         </Card>
       )}
+
+      <FloatingActionButton href="/lists/new" label="Nueva lista" />
     </div>
   );
 }

@@ -3,7 +3,8 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
-import { LogOut, User, Menu } from "lucide-react";
+import { GlobalSearch } from "@/components/search";
+import { LogOut, User, Menu, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,6 +15,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Obtener el nombre personalizado de las preferencias
   useEffect(() => {
@@ -32,7 +34,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const userName = displayName || session?.user?.name || "Usuario";
 
   return (
-    <header className="h-14 md:h-16 border-b border-border bg-surface px-4 md:px-6 flex items-center justify-between">
+    <header className="h-14 md:h-16 border-b border-border bg-surface px-4 md:px-6 flex items-center justify-between relative">
       {/* Lado izquierdo: Hamburger (móvil) + Logo (móvil) */}
       <div className="flex items-center gap-3">
         {/* Hamburger button - solo móvil */}
@@ -50,8 +52,22 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Link>
       </div>
 
-      {/* Lado derecho: User menu */}
+      {/* Centro: Búsqueda global - solo desktop */}
+      <div className="hidden md:block flex-1 max-w-md mx-4">
+        <GlobalSearch />
+      </div>
+
+      {/* Lado derecho: Search button (móvil) + User menu */}
       <div className="flex items-center gap-2 md:gap-4">
+        {/* Search button - solo móvil */}
+        <button
+          onClick={() => setIsSearchOpen(true)}
+          className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
+          aria-label="Buscar"
+        >
+          <Search className="w-5 h-5" />
+        </button>
+
         {session?.user && (
           <>
             <div className="flex items-center gap-2 md:gap-3">
@@ -68,9 +84,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                   <User className="w-4 h-4 text-muted-foreground" />
                 </div>
               )}
-              <div>
+              <div className="hidden sm:block">
                 <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground hidden sm:block">
+                <p className="text-xs text-muted-foreground">
                   {session.user.email}
                 </p>
               </div>
@@ -86,6 +102,20 @@ export function Header({ onMenuClick }: HeaderProps) {
           </>
         )}
       </div>
+
+      {/* Overlay de búsqueda - solo móvil */}
+      {isSearchOpen && (
+        <div className="md:hidden absolute inset-0 bg-surface z-50 flex items-center px-4 gap-2">
+          <GlobalSearch className="flex-1" />
+          <button
+            onClick={() => setIsSearchOpen(false)}
+            className="p-2 rounded-md hover:bg-muted transition-colors"
+            aria-label="Cerrar búsqueda"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </header>
   );
 }

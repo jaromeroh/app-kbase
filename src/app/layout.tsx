@@ -18,7 +18,8 @@ export const metadata: Metadata = {
   description:
     "Gestiona tu contenido: videos, artículos y libros. Califica, comenta y organiza todo lo que aprendes.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
 };
 

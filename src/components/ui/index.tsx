@@ -575,7 +575,7 @@ export function TagInput({
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover p-1 shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-white dark:bg-zinc-900 p-1 shadow-md">
           {filteredSuggestions.map((suggestion, index) => (
             <button
               key={suggestion}
